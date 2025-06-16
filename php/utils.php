@@ -1,7 +1,7 @@
 <?php
 function conectarBD() {
     $host = 'localhost'; // Cambiar al servidor bdd1.ing.puc.cl si se quiere usar el servidor remoto
-    $dbname = 'mnunezvan'; // Nombre de usuario
+    $dbname = 'e3'; // Nombre de usuario
     $usuario = 'mnunezvan'; // Nombre de usuario
     $clave = '23645997'; // Número de alumno
 

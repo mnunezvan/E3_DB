@@ -20,9 +20,12 @@ try {
     $fila = $stmt->fetch(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    header('Location: index.php?error=Error interno de servidor');
+    // Para depuración local, mostramos el mensaje de error real:
+    echo '<h2>Error en la consulta SQL:</h2>';
+    echo '<pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
     exit();
 }
+
 
 if (! $fila) {
     header('Location: index.php?error=Usuario no existe');

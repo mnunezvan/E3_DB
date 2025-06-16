@@ -40,7 +40,7 @@ try {
            (correo, nombre, contrasena, username,
             telefono_contacto, run, dv)
         VALUES
-           (:email, :nombre, :clave, :usuario,
+           (:email, :nombre, :contrasena, :username,
             :telefono, :run, :dv)
     ");
     $stmt->bindParam(':username', $usuario);
@@ -51,7 +51,6 @@ try {
     $stmt->bindParam(':run', $run);
     $stmt->bindParam(':dv', $dv);
     $stmt->execute();
-    $db->commit();
 
     $stmt = $db->prepare("
         INSERT INTO usuario
@@ -61,6 +60,7 @@ try {
     ");
     $stmt->bindParam(':email', $email);
     $stmt->execute();
+    
     $db->commit();
 
     unset($_SESSION['form_data']);
@@ -69,8 +69,12 @@ try {
     exit();
 
 } catch (Exception $e) {
-    if ($db->inTransaction()) $db->rollBack();
-    $_SESSION['error'] = 'Usuario no se puede registrar';
+    // Rollback si estamos en transacción
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
+    // Guardar mensaje exacto de error para depuración
+    $_SESSION['error'] = 'Error: ' . $e->getMessage();
     header('Location: registro.php');
     exit();
 }
