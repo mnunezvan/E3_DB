@@ -7,12 +7,12 @@ if (! isset($_SESSION['correo'])) {
     exit();
 }
 
-$nombre       = $_POST['nombre']        ?? '';
-$descripcion  = $_POST['descripcion']   ?? '';
-$fecha_inicio = $_POST['fecha_inicio']  ?? '';
-$fecha_fin    = $_POST['fecha_fin']     ?? '';
-$ciudad       = $_POST['ciudad']        ?? '';
-$organizador  = $_POST['organizador']   ?? '';
+$nombre       = $_POST['nombre'] ?? '';
+$descripcion  = $_POST['descripcion'] ?? '';
+$fecha_inicio = $_POST['fecha_inicio'] ?? '';
+$fecha_fin    = $_POST['fecha_fin'] ?? '';
+$ciudad       = $_POST['ciudad'] ?? '';
+$organizador  = $_POST['organizador'] ?? '';
 
 try {
     $db = conectarBD();
@@ -38,30 +38,22 @@ try {
         VALUES
             (:correo, :nombre, :descripcion,
              :fecha_inicio, :fecha_fin, :ciudad)
-        RETURNING id
     ";
     $stmt = $db->prepare($insert);
-    $stmt->bindParam(':correo',        $correo_org);
-    $stmt->bindParam(':nombre',        $nombre);
-    $stmt->bindParam(':descripcion',   $descripcion);
-    $stmt->bindParam(':fecha_inicio',  $fecha_inicio);
-    $stmt->bindParam(':fecha_fin',     $fecha_fin);
-    $stmt->bindParam(':ciudad',        $ciudad);
+    $stmt->bindParam(':correo', $correo_org);
+    $stmt->bindParam(':nombre', $nombre);
+    $stmt->bindParam(':descripcion', $descripcion);
+    $stmt->bindParam(':fecha_inicio', $fecha_inicio);
+    $stmt->bindParam(':fecha_fin', $fecha_fin);
+    $stmt->bindParam(':ciudad', $ciudad);
     $stmt->execute();
 
-    // (Opcional) lees el nuevo id si lo necesitas:
-    $agenda_id = $stmt->fetchColumn();
-
-    // 6) Commit: al insertar en agenda, el TRIGGER que configuraremos
-    //    invocará automáticamente al SP1 para sumar puntos.
     $db->commit();
 
-    // 7) Redirigir con mensaje de éxito
     header('Location: crear_viaje.php?mensaje=Viaje creado correctamente');
     exit();
 
 } catch (Exception $e) {
-    // Si algo falla, deshacemos la transacción
     if ($db->inTransaction()) {
         $db->rollBack();
     }

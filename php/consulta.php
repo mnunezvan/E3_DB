@@ -18,8 +18,46 @@ $whereValor = trim($_POST['where_valor'] ?? '');
 $resultados = [];
 $error = '';
 
-// Aquí debe escribir la lógica de la consulta y ejecución
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (! in_array($tablaSel, $tablas, true)) {
+        $error = 'Tabla inválida';
+    }
+    elseif (! preg_match('/^[A-Za-z0-9_,\s\*]+$/', $columnaSel)) {
+        $error = 'Columna(s) inválida(s)';
+    }
+    elseif ($whereCampo !== '' 
+        && ! preg_match('/^[A-Za-z0-9_]+$/', $whereCampo)
+    ) {
+        $error = 'Campo para WHERE inválido';
+    }
+    else {
 
+        $sql = sprintf(
+            'SELECT %s FROM %s',
+            $columnaSel,
+            $tablaSel
+        );
+
+        $params = [];
+        if ($whereCampo !== '' && $whereValor !== '') {
+            $sql .= " WHERE {$whereCampo} = :valor";
+            $params[':valor'] = $whereValor;
+        }
+
+        try {
+            $db   = conectarBD();
+            $stmt = $db->prepare($sql);
+            foreach ($params as $key => $val) {
+                $stmt->bindValue($key, $val);
+            }
+            $stmt->execute();
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            $error = 'Error al ejecutar consulta: ' . $e->getMessage();
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -63,8 +101,9 @@ $error = '';
     </form>
 
     <?php if ($error): ?>
-        <p class="error"><?= $error ?></p>
+        <pre class="error"><?= htmlspecialchars($error) ?></pre>
     <?php endif; ?>
+
 
     <?php if (!empty($resultados)): ?>
         <table class="tabla-estandar">

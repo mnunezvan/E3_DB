@@ -1,7 +1,29 @@
 <?php
 session_start();
-
+$error   = $_GET['error']   ?? null;
 $mensaje = $_GET['mensaje'] ?? null;
+require_once 'utils.php';
+$db = conectarBD();
+$res = $db->query("
+  SELECT 
+    r.id,
+    r.monto,
+    CASE
+      WHEN av.id IS NOT NULL  THEN 'Avión'
+      WHEN bu.id IS NOT NULL  THEN 'Bus'
+      WHEN tr.id IS NOT NULL  THEN 'Tren'
+      WHEN pa.id IS NOT NULL  THEN 'Panorama'
+      WHEN ho.id IS NOT NULL  THEN 'Hospedaje'
+      ELSE 'Desconocido'
+    END AS tipo
+  FROM reserva r
+    LEFT JOIN avion     av ON av.id = r.id
+    LEFT JOIN bus       bu ON bu.id = r.id
+    LEFT JOIN tren      tr ON tr.id = r.id
+    LEFT JOIN panorama  pa ON pa.id = r.id
+    LEFT JOIN hospedaje ho ON ho.id = r.id
+  WHERE r.agenda_id IS NULL
+")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -32,13 +54,30 @@ $mensaje = $_GET['mensaje'] ?? null;
             <label for="organizador">Organizador (usuario):</label>
             <input type="text" id="organizador" name="organizador" required>
 
-            <!-- Cuando se crea el viaje, se debe calcular el precio total y puntaje obtenido por este y luego sumarle ese puntaje al usuario  -->
+            <label for="reservas">Reservas disponibles:</label>
+            <select name="reservas[]" multiple size="6">
+            <?php foreach($reservas as $res): ?>
+                <option value="<?= $res['id'] ?>">
+                <?= "{$res['tipo']} — ID {$res['id']} — \$ {$res['monto']}" ?>
+                </option>
+            <?php endforeach ?>
+            </select>
+
+
+
+            <label for="participantes">Participantes (usernames separados por coma):</label>
+            <textarea id="participantes" name="participantes" rows="2"
+                placeholder="usuario1,usuario2,…"></textarea>
 
             <button type="submit">Crear viaje</button>
         </form>
 
         <?php if ($mensaje): ?>
             <p class="success"><?= htmlspecialchars($mensaje) ?></p>
+        <?php endif; ?>
+
+        <?php if ($error): ?>
+            <p class="error"><?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
 
         <p><a href="main.php">Volver al inicio</a></p>
